@@ -1,0 +1,56 @@
+{% extends './layout.html' %}
+{% block content %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h2 class="h4">{% if title %}{{title}}{% else %}No Title{% endif %}</h2>
+    </div>
+
+    <div class="card-deck mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title"><span data-feather="globe"></span> Lead Sources</h5>
+                <p class="card-text text-muted">Manage where your leads come from (e.g. Referral, Website, Ad Campaign).</p>
+                <p class="card-text">
+                    <span class="badge badge-success">{{ sources_active }} active</span>
+                    <span class="badge badge-secondary">{{ sources_total }} total</span>
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.config_lead_sources') }}" class="btn btn-sm btn-outline-primary">
+                    <span data-feather="settings"></span> Manage Lead Sources
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title"><span data-feather="thermometer"></span> Lead Statuses</h5>
+                <p class="card-text text-muted">Manage lead qualification stages (e.g. New, Contacted, Qualified).</p>
+                <p class="card-text">
+                    <span class="badge badge-success">{{ statuses_active }} active</span>
+                    <span class="badge badge-secondary">{{ statuses_total }} total</span>
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.config_lead_statuses') }}" class="btn btn-sm btn-outline-primary">
+                    <span data-feather="settings"></span> Manage Lead Statuses
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title"><span data-feather="trending-up"></span> Deal Stages</h5>
+                <p class="card-text text-muted">Manage deal pipeline stages and their display order on the kanban board.</p>
+                <p class="card-text">
+                    <span class="badge badge-success">{{ stages_active }} active</span>
+                    <span class="badge badge-secondary">{{ stages_total }} total</span>
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('settings.config_deal_stages') }}" class="btn btn-sm btn-outline-primary">
+                    <span data-feather="settings"></span> Manage Deal Stages
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

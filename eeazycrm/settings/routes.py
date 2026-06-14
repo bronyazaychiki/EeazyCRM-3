@@ -7,6 +7,10 @@ from eeazycrm.users.forms import UpdateProfile, UpdateRoleForm, NewRoleForm, Upd
 from eeazycrm.users.utils import upload_avatar
 from eeazycrm.users.models import User, Role, Resource
 
+from eeazycrm.leads.models import LeadSource, LeadStatus
+from eeazycrm.deals.models import DealStage
+from eeazycrm.settings.config_forms import LeadSourceForm, LeadStatusForm, DealStageForm
+
 from eeazycrm import db, bcrypt
 from eeazycrm.rbac import check_access, is_admin
 
@@ -311,5 +315,350 @@ def create_resource():
 
     db.session.add(role)
     db.session.commit()
+
+
+# ─────────────────────────────────────────────────────────
+#  Configuration Management
+# ─────────────────────────────────────────────────────────
+
+def _reorder_config_item(model_class, item_id, direction):
+    """Swap display_order of item with its neighbor."""
+    item = model_class.query.get(item_id)
+    if not item:
+        return
+
+    if direction == 'up':
+        neighbor = model_class.query \
+            .filter(model_class.display_order < item.display_order) \
+            .order_by(model_class.display_order.desc()) \
+            .first()
+    else:
+        neighbor = model_class.query \
+            .filter(model_class.display_order > item.display_order) \
+            .order_by(model_class.display_order.asc()) \
+            .first()
+
+    if neighbor:
+        item.display_order, neighbor.display_order = neighbor.display_order, item.display_order
+        db.session.commit()
+
+
+# ── Config Hub ──
+
+@settings.route("/settings/config")
+@login_required
+@is_admin
+def config():
+    sources_total = LeadSource.query.count()
+    sources_active = LeadSource.query.filter_by(is_active=True).count()
+    statuses_total = LeadStatus.query.count()
+    statuses_active = LeadStatus.query.filter_by(is_active=True).count()
+    stages_total = DealStage.query.count()
+    stages_active = DealStage.query.filter_by(is_active=True).count()
+    return render_template("settings/config_hub.html",
+                           title="Configuration Management",
+                           sources_active=sources_active, sources_total=sources_total,
+                           statuses_active=statuses_active, statuses_total=statuses_total,
+                           stages_active=stages_active, stages_total=stages_total)
+
+
+# ── Lead Sources ──
+
+@settings.route("/settings/config/lead_sources")
+@login_required
+@is_admin
+def config_lead_sources():
+    sources = LeadSource.lead_source_query_all().all()
+    return render_template("settings/config_lead_sources.html",
+                           title="Lead Sources", sources=sources)
+
+
+@settings.route("/settings/config/lead_source/new", methods=['GET', 'POST'])
+@login_required
+@is_admin
+def config_lead_source_new():
+    form = LeadSourceForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            max_order = db.session.query(db.func.max(LeadSource.display_order)).scalar() or 0
+            source = LeadSource(
+                source_name=form.source_name.data,
+                is_active=form.is_active.data,
+                display_order=max_order + 1
+            )
+            db.session.add(source)
+            try:
+                db.session.commit()
+                flash('Lead source has been successfully created!', 'success')
+                return redirect(url_for('settings.config_lead_sources'))
+            except IntegrityError:
+                db.session.rollback()
+                form.source_name.errors = ['A lead source with this name already exists.']
+                flash('Failed to create lead source.', 'danger')
+    return render_template("settings/config_lead_source_form.html",
+                           title="New Lead Source", form=form)
+
+
+@settings.route("/settings/config/lead_source/edit/<int:source_id>", methods=['GET', 'POST'])
+@login_required
+@is_admin
+def config_lead_source_edit(source_id):
+    source = LeadSource.get_by_id(source_id)
+    if not source:
+        flash('Lead source not found.', 'danger')
+        return redirect(url_for('settings.config_lead_sources'))
+
+    form = LeadSourceForm(exclude_id=source_id)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            source.source_name = form.source_name.data
+            source.is_active = form.is_active.data
+            try:
+                db.session.commit()
+                flash('Lead source has been successfully updated!', 'success')
+                return redirect(url_for('settings.config_lead_sources'))
+            except IntegrityError:
+                db.session.rollback()
+                form.source_name.errors = ['A lead source with this name already exists.']
+                flash('Failed to update lead source.', 'danger')
+    else:
+        form.source_name.data = source.source_name
+        form.is_active.data = source.is_active
+    return render_template("settings/config_lead_source_form.html",
+                           title="Edit Lead Source", form=form, source=source)
+
+
+@settings.route("/settings/config/lead_source/del/<int:source_id>")
+@login_required
+@is_admin
+def config_lead_source_delete(source_id):
+    source = LeadSource.get_by_id(source_id)
+    if not source:
+        flash('Lead source not found.', 'danger')
+    elif source.leads:
+        flash(f'Cannot delete \'{source.source_name}\': {len(source.leads)} lead(s) reference it. '
+              'Please disable it instead.', 'warning')
+    else:
+        db.session.delete(source)
+        db.session.commit()
+        flash('Lead source has been removed.', 'success')
+    return redirect(url_for('settings.config_lead_sources'))
+
+
+@settings.route("/settings/config/lead_source/move_up/<int:source_id>")
+@login_required
+@is_admin
+def config_lead_source_move_up(source_id):
+    _reorder_config_item(LeadSource, source_id, direction='up')
+    return redirect(url_for('settings.config_lead_sources'))
+
+
+@settings.route("/settings/config/lead_source/move_down/<int:source_id>")
+@login_required
+@is_admin
+def config_lead_source_move_down(source_id):
+    _reorder_config_item(LeadSource, source_id, direction='down')
+    return redirect(url_for('settings.config_lead_sources'))
+
+
+# ── Lead Statuses ──
+
+@settings.route("/settings/config/lead_statuses")
+@login_required
+@is_admin
+def config_lead_statuses():
+    statuses = LeadStatus.lead_status_query_all().all()
+    return render_template("settings/config_lead_statuses.html",
+                           title="Lead Statuses", statuses=statuses)
+
+
+@settings.route("/settings/config/lead_status/new", methods=['GET', 'POST'])
+@login_required
+@is_admin
+def config_lead_status_new():
+    form = LeadStatusForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            max_order = db.session.query(db.func.max(LeadStatus.display_order)).scalar() or 0
+            status = LeadStatus(
+                status_name=form.status_name.data,
+                is_active=form.is_active.data,
+                display_order=max_order + 1
+            )
+            db.session.add(status)
+            try:
+                db.session.commit()
+                flash('Lead status has been successfully created!', 'success')
+                return redirect(url_for('settings.config_lead_statuses'))
+            except IntegrityError:
+                db.session.rollback()
+                form.status_name.errors = ['A lead status with this name already exists.']
+                flash('Failed to create lead status.', 'danger')
+    return render_template("settings/config_lead_status_form.html",
+                           title="New Lead Status", form=form)
+
+
+@settings.route("/settings/config/lead_status/edit/<int:status_id>", methods=['GET', 'POST'])
+@login_required
+@is_admin
+def config_lead_status_edit(status_id):
+    status = LeadStatus.get_by_id(status_id)
+    if not status:
+        flash('Lead status not found.', 'danger')
+        return redirect(url_for('settings.config_lead_statuses'))
+
+    form = LeadStatusForm(exclude_id=status_id)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            status.status_name = form.status_name.data
+            status.is_active = form.is_active.data
+            try:
+                db.session.commit()
+                flash('Lead status has been successfully updated!', 'success')
+                return redirect(url_for('settings.config_lead_statuses'))
+            except IntegrityError:
+                db.session.rollback()
+                form.status_name.errors = ['A lead status with this name already exists.']
+                flash('Failed to update lead status.', 'danger')
+    else:
+        form.status_name.data = status.status_name
+        form.is_active.data = status.is_active
+    return render_template("settings/config_lead_status_form.html",
+                           title="Edit Lead Status", form=form, status=status)
+
+
+@settings.route("/settings/config/lead_status/del/<int:status_id>")
+@login_required
+@is_admin
+def config_lead_status_delete(status_id):
+    status = LeadStatus.get_by_id(status_id)
+    if not status:
+        flash('Lead status not found.', 'danger')
+    elif status.leads:
+        flash(f'Cannot delete \'{status.status_name}\': {len(status.leads)} lead(s) reference it. '
+              'Please disable it instead.', 'warning')
+    else:
+        db.session.delete(status)
+        db.session.commit()
+        flash('Lead status has been removed.', 'success')
+    return redirect(url_for('settings.config_lead_statuses'))
+
+
+@settings.route("/settings/config/lead_status/move_up/<int:status_id>")
+@login_required
+@is_admin
+def config_lead_status_move_up(status_id):
+    _reorder_config_item(LeadStatus, status_id, direction='up')
+    return redirect(url_for('settings.config_lead_statuses'))
+
+
+@settings.route("/settings/config/lead_status/move_down/<int:status_id>")
+@login_required
+@is_admin
+def config_lead_status_move_down(status_id):
+    _reorder_config_item(LeadStatus, status_id, direction='down')
+    return redirect(url_for('settings.config_lead_statuses'))
+
+
+# ── Deal Stages ──
+
+@settings.route("/settings/config/deal_stages")
+@login_required
+@is_admin
+def config_deal_stages():
+    stages = DealStage.deal_stage_query_all().all()
+    return render_template("settings/config_deal_stages.html",
+                           title="Deal Stages", stages=stages)
+
+
+@settings.route("/settings/config/deal_stage/new", methods=['GET', 'POST'])
+@login_required
+@is_admin
+def config_deal_stage_new():
+    form = DealStageForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            max_order = db.session.query(db.func.max(DealStage.display_order)).scalar() or 0
+            stage = DealStage(
+                stage_name=form.stage_name.data,
+                close_type=form.close_type.data.strip().lower() if form.close_type.data else None,
+                is_active=form.is_active.data,
+                display_order=max_order + 1
+            )
+            db.session.add(stage)
+            try:
+                db.session.commit()
+                flash('Deal stage has been successfully created!', 'success')
+                return redirect(url_for('settings.config_deal_stages'))
+            except IntegrityError:
+                db.session.rollback()
+                form.stage_name.errors = ['A deal stage with this name already exists.']
+                flash('Failed to create deal stage.', 'danger')
+    return render_template("settings/config_deal_stage_form.html",
+                           title="New Deal Stage", form=form)
+
+
+@settings.route("/settings/config/deal_stage/edit/<int:stage_id>", methods=['GET', 'POST'])
+@login_required
+@is_admin
+def config_deal_stage_edit(stage_id):
+    stage = DealStage.get_deal_stage(stage_id)
+    if not stage:
+        flash('Deal stage not found.', 'danger')
+        return redirect(url_for('settings.config_deal_stages'))
+
+    form = DealStageForm(exclude_id=stage_id)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            stage.stage_name = form.stage_name.data
+            stage.close_type = form.close_type.data.strip().lower() if form.close_type.data else None
+            stage.is_active = form.is_active.data
+            try:
+                db.session.commit()
+                flash('Deal stage has been successfully updated!', 'success')
+                return redirect(url_for('settings.config_deal_stages'))
+            except IntegrityError:
+                db.session.rollback()
+                form.stage_name.errors = ['A deal stage with this name already exists.']
+                flash('Failed to update deal stage.', 'danger')
+    else:
+        form.stage_name.data = stage.stage_name
+        form.close_type.data = stage.close_type or ''
+        form.is_active.data = stage.is_active
+    return render_template("settings/config_deal_stage_form.html",
+                           title="Edit Deal Stage", form=form, stage=stage)
+
+
+@settings.route("/settings/config/deal_stage/del/<int:stage_id>")
+@login_required
+@is_admin
+def config_deal_stage_delete(stage_id):
+    stage = DealStage.get_deal_stage(stage_id)
+    if not stage:
+        flash('Deal stage not found.', 'danger')
+    elif stage.deals:
+        flash(f'Cannot delete \'{stage.stage_name}\': {len(stage.deals)} deal(s) reference it. '
+              'Please disable it instead.', 'warning')
+    else:
+        db.session.delete(stage)
+        db.session.commit()
+        flash('Deal stage has been removed.', 'success')
+    return redirect(url_for('settings.config_deal_stages'))
+
+
+@settings.route("/settings/config/deal_stage/move_up/<int:stage_id>")
+@login_required
+@is_admin
+def config_deal_stage_move_up(stage_id):
+    _reorder_config_item(DealStage, stage_id, direction='up')
+    return redirect(url_for('settings.config_deal_stages'))
+
+
+@settings.route("/settings/config/deal_stage/move_down/<int:stage_id>")
+@login_required
+@is_admin
+def config_deal_stage_move_down(stage_id):
+    _reorder_config_item(DealStage, stage_id, direction='down')
+    return redirect(url_for('settings.config_deal_stages'))
 
 

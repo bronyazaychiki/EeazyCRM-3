@@ -14,7 +14,7 @@ from eeazycrm.deals.models import DealStage
 
 
 def lead_source_query():
-    return LeadSource.query
+    return LeadSource.query.filter_by(is_active=True).order_by(LeadSource.display_order.asc())
 
 
 class NewLead(FlaskForm):

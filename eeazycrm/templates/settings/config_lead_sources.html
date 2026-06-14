@@ -1,0 +1,115 @@
+{% extends './layout.html' %}
+{% block content %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h2 class="h4">{% if title %}{{title}}{% else %}No Title{% endif %}</h2>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a class="btn btn-sm btn-outline-secondary mr-2" role="button" href="{{ url_for('settings.config') }}">
+                <span data-feather="arrow-left"></span> Back
+            </a>
+            <a class="btn btn-sm btn-outline-primary" role="button" href="{{ url_for('settings.config_lead_source_new') }}">
+                <span data-feather="plus"></span> Add New Lead Source
+            </a>
+        </div>
+    </div>
+
+    {% set active_tab = 'sources' %}
+    {% include "settings/_config_tabs.html" %}
+
+    {% if sources|length > 0 %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="thead-light">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Actions</th>
+                <th scope="col">Source Name</th>
+                <th scope="col">Status</th>
+                <th scope="col">Leads</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for source in sources %}
+                <tr>
+                    <td scope="row">{{ source.display_order }}</td>
+                    <td>
+                        <a href="{{ url_for('settings.config_lead_source_edit', source_id=source.id) }}"
+                           class="btn btn-outline-secondary btn-sm mr-1" role="button" title="Edit">
+                            <span data-feather="edit"></span>
+                        </a>
+                        <a href="#" data-target="#deleteModal_{{ source.id }}"
+                           class="btn btn-outline-secondary btn-sm mr-1" data-toggle="modal" role="button" title="Delete"
+                           {% if source.leads|length > 0 %}style="opacity:0.4; pointer-events:none;"{% endif %}>
+                            <span data-feather="trash"></span>
+                        </a>
+                        <a href="{{ url_for('settings.config_lead_source_move_up', source_id=source.id) }}"
+                           class="btn btn-outline-secondary btn-sm mr-1" role="button" title="Move Up"
+                           {% if loop.first %}style="opacity:0.3; pointer-events:none;"{% endif %}>
+                            <span data-feather="arrow-up"></span>
+                        </a>
+                        <a href="{{ url_for('settings.config_lead_source_move_down', source_id=source.id) }}"
+                           class="btn btn-outline-secondary btn-sm" role="button" title="Move Down"
+                           {% if loop.last %}style="opacity:0.3; pointer-events:none;"{% endif %}>
+                            <span data-feather="arrow-down"></span>
+                        </a>
+
+                        <!-- Delete Warning Modal -->
+                        <div class="modal fade" id="deleteModal_{{ source.id }}"
+                             tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel_{{ source.id }}" aria-hidden="true">
+                          <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel_{{ source.id }}">Delete Lead Source `{{ source.source_name }}`?</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
+                              <div class="modal-body text-center">
+                                {% if source.leads|length > 0 %}
+                                  <div class="alert alert-warning" role="alert">
+                                      <strong>Cannot delete this source.</strong><br>
+                                      {{ source.leads|length }} lead(s) currently reference it.
+                                      Please disable it instead.
+                                  </div>
+                                {% else %}
+                                  <div><strong>Are you sure you want to delete this lead source?</strong></div>
+                                  <div class="text-muted">This action cannot be undone.</div>
+                                {% endif %}
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                                {% if source.leads|length == 0 %}
+                                <button type="button" id="del_{{ source.id }}" class="btn btn-outline-danger">Delete Source</button>
+                                <script>
+                                    $(document).ready(function() {
+                                        $("#del_{{ source.id }}").on("click", function(e) {
+                                            window.location="{{ url_for('settings.config_lead_source_delete', source_id=source.id) }}"
+                                        });
+                                    });
+                                </script>
+                                {% endif %}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    </td>
+                    <td scope="row">{{ source.source_name }}</td>
+                    <td>
+                        {% if source.is_active %}
+                            <span class="badge badge-success">Active</span>
+                        {% else %}
+                            <span class="badge badge-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ source.leads|length }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="container text-center pt-4">
+            <div><span data-feather="eye-off"></span></div>
+            <p>No lead sources configured yet. Click "Add New Lead Source" to create one.</p>
+        </div>
+    {% endif %}
+{% endblock %}

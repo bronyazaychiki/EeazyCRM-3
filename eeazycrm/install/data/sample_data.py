@@ -597,13 +597,13 @@ INSERT INTO public.contact (id, first_name, last_name, email, avatar, phone, mob
 INSERT INTO public.contact (id, first_name, last_name, email, avatar, phone, mobile, address_line, addr_state, addr_city, post_code, country, notes, account_id, owner_id, date_created) VALUES (294, 'Drugi', 'Pitrasso', 'dpitrasso85@123-reg.co.uk', NULL, '176-193-2801', '+86-516-213-5255', '5 Macpherson Parkway', 'Pays de la Loire', 'Angers', '49023 CEDEX 02', 'France', 'This is an important contact', 130, 43, '2019-11-16 19:38:22');
 
 
-INSERT INTO public.deal_stage (id, stage_name, display_order, close_type) VALUES (1, 'Qualification', 1, NULL);
-INSERT INTO public.deal_stage (id, stage_name, display_order, close_type) VALUES (2, 'Analysis', 2, NULL);
-INSERT INTO public.deal_stage (id, stage_name, display_order, close_type) VALUES (3, 'Value Proposition', 3, NULL);
-INSERT INTO public.deal_stage (id, stage_name, display_order, close_type) VALUES (4, 'Negotiation', 4, NULL);
-INSERT INTO public.deal_stage (id, stage_name, display_order, close_type) VALUES (5, 'Review', 5, NULL);
-INSERT INTO public.deal_stage (id, stage_name, display_order, close_type) VALUES (6, 'Deal Won', 6, 'won');
-INSERT INTO public.deal_stage (id, stage_name, display_order, close_type) VALUES (7, 'Closed - Won', 7, 'lost');
+INSERT INTO public.deal_stage (id, stage_name, display_order, close_type, is_active) VALUES (1, 'Qualification', 1, NULL, true);
+INSERT INTO public.deal_stage (id, stage_name, display_order, close_type, is_active) VALUES (2, 'Analysis', 2, NULL, true);
+INSERT INTO public.deal_stage (id, stage_name, display_order, close_type, is_active) VALUES (3, 'Value Proposition', 3, NULL, true);
+INSERT INTO public.deal_stage (id, stage_name, display_order, close_type, is_active) VALUES (4, 'Negotiation', 4, NULL, true);
+INSERT INTO public.deal_stage (id, stage_name, display_order, close_type, is_active) VALUES (5, 'Review', 5, NULL, true);
+INSERT INTO public.deal_stage (id, stage_name, display_order, close_type, is_active) VALUES (6, 'Deal Won', 6, 'won', true);
+INSERT INTO public.deal_stage (id, stage_name, display_order, close_type, is_active) VALUES (7, 'Closed - Won', 7, 'lost', true);
 
 
 INSERT INTO public.deal (id, title, expected_close_price, expected_close_date, deal_stage_id, account_id, contact_id, owner_id, notes, date_created) VALUES (7, 'vehicula condimentum curabitur in libero ut', 16036.2000000000007, '2019-02-24 09:59:08', 3, 82, NULL, 44, NULL, '2019-02-15 11:19:54');
@@ -708,18 +708,18 @@ INSERT INTO public.deal (id, title, expected_close_price, expected_close_date, d
 INSERT INTO public.deal (id, title, expected_close_price, expected_close_date, deal_stage_id, account_id, contact_id, owner_id, notes, date_created) VALUES (97, 'vel pede morbi porttitor lorem', 39478.4000000000015, '2020-01-26 02:24:00', 7, 53, 137, 44, '', '2019-11-06 17:25:00');
 
 
-INSERT INTO public.lead_source (id, source_name) VALUES (2, 'Newspaper');
-INSERT INTO public.lead_source (id, source_name) VALUES (3, 'Google Search');
-INSERT INTO public.lead_source (id, source_name) VALUES (4, 'Referral');
-INSERT INTO public.lead_source (id, source_name) VALUES (5, 'Ad Campaign');
-INSERT INTO public.lead_source (id, source_name) VALUES (6, 'Word of Mouth');
+INSERT INTO public.lead_source (id, source_name, is_active, display_order) VALUES (2, 'Newspaper', true, 1);
+INSERT INTO public.lead_source (id, source_name, is_active, display_order) VALUES (3, 'Google Search', true, 2);
+INSERT INTO public.lead_source (id, source_name, is_active, display_order) VALUES (4, 'Referral', true, 3);
+INSERT INTO public.lead_source (id, source_name, is_active, display_order) VALUES (5, 'Ad Campaign', true, 4);
+INSERT INTO public.lead_source (id, source_name, is_active, display_order) VALUES (6, 'Word of Mouth', true, 5);
 
 
-INSERT INTO public.lead_status (id, status_name) VALUES (1, 'Very Cold');
-INSERT INTO public.lead_status (id, status_name) VALUES (2, 'Cold');
-INSERT INTO public.lead_status (id, status_name) VALUES (3, 'Warm');
-INSERT INTO public.lead_status (id, status_name) VALUES (4, 'Hot');
-INSERT INTO public.lead_status (id, status_name) VALUES (5, 'Very Hot');
+INSERT INTO public.lead_status (id, status_name, is_active, display_order) VALUES (1, 'Very Cold', true, 1);
+INSERT INTO public.lead_status (id, status_name, is_active, display_order) VALUES (2, 'Cold', true, 2);
+INSERT INTO public.lead_status (id, status_name, is_active, display_order) VALUES (3, 'Warm', true, 3);
+INSERT INTO public.lead_status (id, status_name, is_active, display_order) VALUES (4, 'Hot', true, 4);
+INSERT INTO public.lead_status (id, status_name, is_active, display_order) VALUES (5, 'Very Hot', true, 5);
 
 
 INSERT INTO public.lead (id, title, first_name, last_name, company_name, email, phone, mobile, address_line, addr_state, addr_city, post_code, country, notes, lead_source_id, lead_status_id, owner_id, date_created) VALUES (1, 'in lacus curabitur at ipsum ac tellus', 'Teirtza', 'Queree', 'Viva', 'tqueree0@blog.com', NULL, NULL, '9968 Buena Vista Drive', NULL, 'Baixi', NULL, 'China', 'donec dapibus duis at velit eu est congue elementum in hac habitasse platea dictumst morbi vestibulum', 6, 5, 44, '2019-07-14 21:24:12');

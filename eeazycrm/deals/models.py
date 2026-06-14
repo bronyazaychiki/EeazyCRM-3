@@ -7,6 +7,7 @@ class DealStage(db.Model):
     stage_name = db.Column(db.String(20), nullable=False)
     display_order = db.Column(db.Integer, nullable=False)
     close_type = db.Column(db.String(10), nullable=True, default=None)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, server_default='true')
     deals = db.relationship(
         'Deal',
         backref='dealstage',
@@ -15,7 +16,11 @@ class DealStage(db.Model):
 
     @staticmethod
     def deal_stage_list_query():
-        return DealStage.query
+        return DealStage.query.filter_by(is_active=True).order_by(DealStage.display_order.asc())
+
+    @staticmethod
+    def deal_stage_query_all():
+        return DealStage.query.order_by(DealStage.display_order.asc())
 
     @staticmethod
     def get_label(deal_stage):

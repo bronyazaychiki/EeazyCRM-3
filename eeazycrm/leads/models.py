@@ -5,11 +5,17 @@ from eeazycrm import db
 class LeadStatus(db.Model):
     id = db.Column(db.Integer, db.Sequence('lead_status_id_seq'), primary_key=True)
     status_name = db.Column(db.String(40), unique=True, nullable=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, server_default='true')
+    display_order = db.Column(db.Integer, nullable=False, default=0, server_default='0')
     leads = db.relationship('Lead', backref='status', lazy=True)
 
     @staticmethod
     def lead_status_query():
-        return LeadStatus.query
+        return LeadStatus.query.filter_by(is_active=True).order_by(LeadStatus.display_order.asc())
+
+    @staticmethod
+    def lead_status_query_all():
+        return LeadStatus.query.order_by(LeadStatus.display_order.asc())
 
     @staticmethod
     def get_by_id(lead_status_id):
@@ -22,6 +28,8 @@ class LeadStatus(db.Model):
 class LeadSource(db.Model):
     id = db.Column(db.Integer, db.Sequence('lead_source_id_seq'), primary_key=True)
     source_name = db.Column(db.String(40), unique=True, nullable=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, server_default='true')
+    display_order = db.Column(db.Integer, nullable=False, default=0, server_default='0')
     leads = db.relationship('Lead', backref='source', lazy=True)
 
     @staticmethod
@@ -30,7 +38,11 @@ class LeadSource(db.Model):
 
     @staticmethod
     def lead_source_query():
-        return LeadSource.query
+        return LeadSource.query.filter_by(is_active=True).order_by(LeadSource.display_order.asc())
+
+    @staticmethod
+    def lead_source_query_all():
+        return LeadSource.query.order_by(LeadSource.display_order.asc())
 
     def __repr__(self):
         return f"LeadSource('{self.source_name}')"

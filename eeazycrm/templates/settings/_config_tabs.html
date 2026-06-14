@@ -1,0 +1,20 @@
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_tab == 'sources' }}"
+           href="{{ url_for('settings.config_lead_sources') }}">
+            <span data-feather="globe"></span> Lead Sources
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_tab == 'statuses' }}"
+           href="{{ url_for('settings.config_lead_statuses') }}">
+            <span data-feather="thermometer"></span> Lead Statuses
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_tab == 'stages' }}"
+           href="{{ url_for('settings.config_deal_stages') }}">
+            <span data-feather="trending-up"></span> Deal Stages
+        </a>
+    </li>
+</ul>

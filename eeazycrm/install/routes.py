@@ -146,8 +146,16 @@ def empty_setup():
     db.session.add(user)
 
     # add system deal stages
-    db.session.add(DealStage(stage_name="Deal Won", display_order=1, close_type='won'))
-    db.session.add(DealStage(stage_name="Deal Lost", display_order=2, close_type='lost'))
+    db.session.add(DealStage(stage_name="Deal Won", display_order=1, close_type='won', is_active=True))
+    db.session.add(DealStage(stage_name="Deal Lost", display_order=2, close_type='lost', is_active=True))
+
+    # add default lead sources
+    for i, name in enumerate(["Website", "Referral", "Cold Call", "Ad Campaign", "Other"], 1):
+        db.session.add(LeadSource(source_name=name, is_active=True, display_order=i))
+
+    # add default lead statuses
+    for i, name in enumerate(["New", "Contacted", "Qualified", "Proposal", "Negotiation"], 1):
+        db.session.add(LeadStatus(status_name=name, is_active=True, display_order=i))
 
 
 @install.route("/install/finish", methods=['GET', 'POST'])

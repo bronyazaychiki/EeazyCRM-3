@@ -64,7 +64,7 @@ def get_deals_view():
     if view_t == 'kanban':
         return render_template("deals/kanban_view.html", title="Deals View",
                                deals=query.all(),
-                               deal_stages=DealStage.query.order_by(DealStage.display_order.asc()).all(),
+                               deal_stages=DealStage.query.filter_by(is_active=True).order_by(DealStage.display_order.asc()).all(),
                                filters=filters)
     else:
         return render_template("deals/deals_list.html", title="Deals View",
