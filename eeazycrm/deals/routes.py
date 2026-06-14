@@ -76,8 +76,12 @@ def get_deals_view():
 @check_access('deals', 'view')
 def get_deal_view(deal_id):
     deal = Deal.query.filter_by(id=deal_id).first()
-    print(deal.account, deal.contact)
-    return render_template("deals/deal_view.html", title="Deal View", deal=deal)
+    from eeazycrm.activities.models import Activity
+    recent_activities = Activity.query.filter_by(deal_id=deal_id) \
+        .order_by(Activity.scheduled_date.desc()).limit(5).all()
+    return render_template("deals/deal_view.html", title="Deal View", deal=deal,
+                           recent_activities=recent_activities,
+                           context_params={'deal_id': deal_id})
 
 
 @deals.route("/deals/new", methods=['GET', 'POST'])

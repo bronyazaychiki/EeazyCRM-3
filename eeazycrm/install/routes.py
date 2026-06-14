@@ -132,6 +132,16 @@ def empty_setup():
         )
     )
 
+    role.resources.append(
+        Resource(
+            name='activities',
+            can_view=True,
+            can_edit=True,
+            can_create=True,
+            can_delete=False
+        )
+    )
+
     # create user
     user = User(first_name=session['admin_first_name'],
                 last_name=session['admin_last_name'],

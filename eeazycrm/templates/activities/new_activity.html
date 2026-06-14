@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+    {% block content %}
+<form class="form-new-activity" method="POST">
+    {{ form.hidden_tag() }}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h2 class="h4">{% if title %}{{title}}{% else %}No Title{% endif %}</h2>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            {{ form.submit(class="btn btn-md btn-outline-info mr-2") }}
+            <input type="reset" class="btn btn-md btn-outline-secondary mr-2" />
+            <a href="{{ url_for('activities.get_activities_view') }}" class="btn btn-md btn-outline-secondary" role="button">
+                <span data-feather="arrow-left"></span>
+                  Back to List
+            </a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-9">
+            <div class="form-row mb-3">
+                <div class="col">
+                    {{ form.subject.label(class="form-control-label") }}
+                    {% if form.subject.errors %}
+                        {{ form.subject(class="form-control form-control-lg required is-invalid", placeholder="enter activity subject ...") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.subject.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.subject(class="form-control from-control-lg required", placeholder="enter activity subject ...") }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-row mb-3">
+                <div class="col">
+                    {{ form.activity_type.label(class="form-control-label") }}
+                    {% if form.activity_type.errors %}
+                        {{ form.activity_type(class="my-select form-control form-control-lg required is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.activity_type.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.activity_type(class="my-select form-control from-control-lg required") }}
+                    {% endif %}
+                </div>
+                <div class="col">
+                    {{ form.priority.label(class="form-control-label") }}
+                    {{ form.priority(class="form-control from-control-lg") }}
+                </div>
+            </div>
+
+            <div class="form-row mb-3">
+                <div class="col">
+                    {{ form.scheduled_date.label(class="form-control-label") }}
+                    {% if form.scheduled_date.errors %}
+                        {{ form.scheduled_date(class="form-control form-control-lg required is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.scheduled_date.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.scheduled_date(class="form-control from-control-lg required") }}
+                    {% endif %}
+                </div>
+                <div class="col">
+                    {{ form.status.label(class="form-control-label") }}
+                    {{ form.status(class="form-control from-control-lg") }}
+                </div>
+            </div>
+
+            <div class="form-row mb-3">
+                <div class="col-6">
+                    {% if current_user.is_admin %}
+                    {{ form.assignees.label(class="form-control-label") }}
+                    {{ form.assignees(class="form-control from-control-lg") }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr />
+            <div class="mb-3"><strong>Related Entities (Optional)</strong></div>
+
+            <div class="form-row mb-3">
+                <div class="col">
+                    {{ form.leads.label(class="form-control-label") }}
+                    {{ form.leads(class="my-select form-control from-control-lg") }}
+                </div>
+                <div class="col">
+                    {{ form.accounts.label(class="form-control-label") }}
+                    {{ form.accounts(class="my-select form-control from-control-lg") }}
+                </div>
+            </div>
+
+            <div class="form-row mb-3">
+                <div class="col">
+                    {{ form.contacts.label(class="form-control-label") }}
+                    {{ form.contacts(class="my-select form-control from-control-lg") }}
+                </div>
+                <div class="col">
+                    {{ form.deals.label(class="form-control-label") }}
+                    {{ form.deals(class="my-select form-control from-control-lg") }}
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="form-group">
+                {{ form.description.label(class="form-control-label") }}
+                {{ form.description(class="form-control from-control-lg", rows="4") }}
+            </div>
+        </div>
+    </div>
+</form>
+    {% endblock %}

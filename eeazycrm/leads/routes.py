@@ -160,7 +160,12 @@ def update_lead(lead_id):
 @check_access('leads', 'view')
 def get_lead_view(lead_id):
     lead = Lead.query.filter_by(id=lead_id).first()
-    return render_template("leads/lead_view.html", title="View Lead", lead=lead)
+    from eeazycrm.activities.models import Activity
+    recent_activities = Activity.query.filter_by(lead_id=lead_id) \
+        .order_by(Activity.scheduled_date.desc()).limit(5).all()
+    return render_template("leads/lead_view.html", title="View Lead", lead=lead,
+                           recent_activities=recent_activities,
+                           context_params={'lead_id': lead_id})
 
 
 @leads.route("/leads/del/<int:lead_id>")

@@ -280,4 +280,38 @@ body {
     font-size: 14px;
 }
 
+/*
+ * Activities
+ */
+
+.badge-activity-overdue {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge-activity-today {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+/* Dashboard activity widgets */
+.activity-widget {
+    margin-bottom: 1rem;
+}
+
+.activity-widget .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.activity-widget .list-group-item {
+    padding: .5rem .75rem;
+}
+
+.activity-widget .activity-time {
+    font-size: .8rem;
+    color: #6c757d;
+}
+
 

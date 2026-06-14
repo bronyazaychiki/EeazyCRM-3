@@ -134,7 +134,12 @@ def update_account(account_id):
 @check_access('accounts', 'view')
 def get_account_view(account_id):
     account = Account.query.filter_by(id=account_id).first()
-    return render_template("accounts/account_view.html", title="View Account", account=account)
+    from eeazycrm.activities.models import Activity
+    recent_activities = Activity.query.filter_by(account_id=account_id) \
+        .order_by(Activity.scheduled_date.desc()).limit(5).all()
+    return render_template("accounts/account_view.html", title="View Account", account=account,
+                           recent_activities=recent_activities,
+                           context_params={'account_id': account_id})
 
 
 @accounts.route("/accounts/new", methods=['GET', 'POST'])

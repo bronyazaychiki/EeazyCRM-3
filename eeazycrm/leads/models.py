@@ -60,6 +60,19 @@ class Lead(db.Model):
     def get_by_id(lead_id):
         return Lead.query.filter_by(id=lead_id).first()
 
+    @staticmethod
+    def lead_list_query():
+        from flask_login import current_user
+        if current_user.is_admin:
+            return Lead.query
+        else:
+            return Lead.query.filter_by(owner_id=current_user.id)
+
+    @staticmethod
+    def get_label(lead):
+        name = (lead.first_name or '') + ' ' + (lead.last_name or '')
+        return name.strip() or lead.company_name or f'Lead #{lead.id}'
+
     def __repr__(self):
         return f"Lead('{self.last_name}', '{self.email}', '{self.company_name}')"
 

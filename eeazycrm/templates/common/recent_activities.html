@@ -1,0 +1,59 @@
+<!-- Recent Activities Section -->
+<div class="row">
+    <div class="col-10 mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="text-muted">Recent Activities</h5>
+            <a href="{{ url_for('activities.new_activity', **context_params) }}"
+               class="btn btn-sm btn-outline-primary" role="button">
+                <span data-feather="plus"></span>
+                Add Activity
+            </a>
+        </div>
+        {% if recent_activities %}
+        <table class="table table-sm table-striped">
+            <thead class="thead-light">
+                <tr>
+                    <th>Subject</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Scheduled</th>
+                    <th>Assigned To</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for act in recent_activities %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('activities.get_activity_view', activity_id=act.id) }}">
+                            {{ act.subject }}
+                        </a>
+                    </td>
+                    <td>
+                        <span data-feather="{{ act.activity_type.icon }}" class="mr-1"></span>
+                        {{ act.activity_type.display_name }}
+                    </td>
+                    <td><span class="badge {{ act.get_status_css() }}">{{ act.get_status_display() }}</span></td>
+                    <td>
+                        {% if act.is_overdue %}<span class="text-danger">{% elif act.is_today() %}<span class="text-warning">{% else %}<span>{% endif %}
+                            {{ act.scheduled_date.strftime('%Y-%m-%d %H:%M') if act.scheduled_date else '_' }}
+                        </span>
+                    </td>
+                    <td>{% if act.owner %}{% with owner=act.owner %}{% include 'common/owner_cell.html' %}{% endwith %}{% else %}_{% endif %}</td>
+                    <td>
+                        <a href="{{ url_for('activities.update_activity', activity_id=act.id) }}"
+                           class="btn btn-outline-secondary btn-sm" role="button">
+                            <span data-feather="edit"></span>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">No activities yet.
+            <a href="{{ url_for('activities.new_activity', **context_params) }}">Create one</a>
+        </p>
+        {% endif %}
+    </div>
+</div>

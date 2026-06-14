@@ -2,5 +2,113 @@
     {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h2 class="h4">{% if title %}{{title}}{% else %}No Title{% endif %}</h2>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a class="btn btn-sm btn-outline-primary" role="button" href="{{ url_for('activities.new_activity') }}">
+            <span data-feather="plus"></span>
+              New Activity
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Overdue Activities -->
+    <div class="col-md-4">
+        <div class="card activity-widget border-danger mb-4">
+            <div class="card-header bg-danger text-white">
+                <strong><span data-feather="alert-circle"></span> Overdue</strong>
+                <span class="badge badge-light">{{ overdue|length }}</span>
+            </div>
+            {% if overdue %}
+            <ul class="list-group list-group-flush">
+                {% for act in overdue %}
+                <li class="list-group-item">
+                    <a href="{{ url_for('activities.get_activity_view', activity_id=act.id) }}">
+                        <span data-feather="{{ act.activity_type.icon }}" class="mr-1"></span>
+                        {{ act.subject }}
+                    </a>
+                    <br />
+                    <small class="activity-time text-danger">
+                        Due: {{ act.scheduled_date.strftime('%Y-%m-%d %H:%M') }}
+                    </small>
+                    {% if act.owner %}
+                    <small class="activity-time float-right">
+                        {% with owner=act.owner %}{% include 'common/owner_cell.html' %}{% endwith %}
+                    </small>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="card-body text-muted">No overdue activities</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Today's Activities -->
+    <div class="col-md-4">
+        <div class="card activity-widget border-warning mb-4">
+            <div class="card-header bg-warning">
+                <strong><span data-feather="clock"></span> Today</strong>
+                <span class="badge badge-light">{{ today_activities|length }}</span>
+            </div>
+            {% if today_activities %}
+            <ul class="list-group list-group-flush">
+                {% for act in today_activities %}
+                <li class="list-group-item">
+                    <a href="{{ url_for('activities.get_activity_view', activity_id=act.id) }}">
+                        <span data-feather="{{ act.activity_type.icon }}" class="mr-1"></span>
+                        {{ act.subject }}
+                    </a>
+                    <br />
+                    <small class="activity-time">
+                        {{ act.scheduled_date.strftime('%H:%M') }}
+                        <span class="badge {{ act.get_status_css() }} ml-1">{{ act.get_status_display() }}</span>
+                    </small>
+                    {% if act.owner %}
+                    <small class="activity-time float-right">
+                        {% with owner=act.owner %}{% include 'common/owner_cell.html' %}{% endwith %}
+                    </small>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="card-body text-muted">No activities scheduled for today</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Upcoming Activities -->
+    <div class="col-md-4">
+        <div class="card activity-widget border-info mb-4">
+            <div class="card-header bg-info text-white">
+                <strong><span data-feather="calendar"></span> Upcoming (7 days)</strong>
+                <span class="badge badge-light">{{ upcoming|length }}</span>
+            </div>
+            {% if upcoming %}
+            <ul class="list-group list-group-flush">
+                {% for act in upcoming %}
+                <li class="list-group-item">
+                    <a href="{{ url_for('activities.get_activity_view', activity_id=act.id) }}">
+                        <span data-feather="{{ act.activity_type.icon }}" class="mr-1"></span>
+                        {{ act.subject }}
+                    </a>
+                    <br />
+                    <small class="activity-time">
+                        {{ act.scheduled_date.strftime('%Y-%m-%d %H:%M') }}
+                    </small>
+                    {% if act.owner %}
+                    <small class="activity-time float-right">
+                        {% with owner=act.owner %}{% include 'common/owner_cell.html' %}{% endwith %}
+                    </small>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="card-body text-muted">No upcoming activities</div>
+            {% endif %}
+        </div>
+    </div>
 </div>
     {% endblock %}

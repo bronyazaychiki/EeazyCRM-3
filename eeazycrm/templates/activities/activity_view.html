@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+    {% block content %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h2 class="h4">{% if title %}{{title}}{% else %}No Title{% endif %}</h2>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('activities.update_activity', activity_id=activity.id) }}"
+               class="btn btn-md btn-outline-primary mr-2" role="button">
+                <span data-feather="edit-2"></span>
+                  Edit
+            </a>
+            {% if activity.status == 'pending' %}
+            <a href="{{ url_for('activities.complete_activity', activity_id=activity.id) }}"
+               class="btn btn-md btn-outline-success mr-2" role="button">
+                <span data-feather="check"></span>
+                  Mark Complete
+            </a>
+            {% endif %}
+            <a href="{{ url_for('activities.get_activities_view') }}" class="btn btn-md btn-outline-secondary" role="button">
+                <span data-feather="arrow-left"></span>
+                  Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-5">
+            <ul class="list-group list-group-flush">
+
+                <li class="list-group-item g_field">
+                  <div class="label">Subject</div>
+                    <div class="text">{{ activity.subject if activity.subject else '_' }}</div>
+                </li>
+
+                <li class="list-group-item g_field">
+                  <div class="label">Type</div>
+                    <div class="text">
+                        <span data-feather="{{ activity.activity_type.icon }}" class="mr-1"></span>
+                        {{ activity.activity_type.display_name }}
+                    </div>
+                </li>
+
+                <li class="list-group-item g_field col-12">
+                    <div class="row">
+                      <div class="col-6">
+                          <div class="label">Status</div>
+                          <div class="text">
+                              <span class="badge {{ activity.get_status_css() }}">{{ activity.get_status_display() }}</span>
+                          </div>
+                      </div>
+                      <div class="col-6">
+                          <div class="label">Priority</div>
+                          <div class="text">{{ activity.get_priority_display() }}</div>
+                      </div>
+                    </div>
+                </li>
+
+                <li class="list-group-item g_field col-12">
+                    <div class="row">
+                      <div class="col-6">
+                          <div class="label">Scheduled Date</div>
+                          <div class="text">
+                              {% if activity.is_overdue %}
+                                  <span class="text-danger">
+                                      <span data-feather="alert-circle" class="mr-1"></span>
+                              {% elif activity.is_today() %}
+                                  <span class="text-warning">
+                                      <span data-feather="clock" class="mr-1"></span>
+                              {% else %}
+                                  <span>
+                              {% endif %}
+                                  {{ activity.scheduled_date.strftime('%d %B, %Y %I:%M %p').lower() if activity.scheduled_date else '_' }}
+                              </span>
+                          </div>
+                      </div>
+                      <div class="col-6">
+                          <div class="label">Completed Date</div>
+                          <div class="text">{{ activity.completed_date.strftime('%d %B, %Y %I:%M %p').lower() if activity.completed_date else '_' }}</div>
+                      </div>
+                    </div>
+                </li>
+
+                <li class="list-group-item g_field">
+                  <div class="label">Assigned To</div>
+                    {% if activity.owner %}
+                    <div class="text">
+                        <div class="mt-1">
+                            {% with owner=activity.owner %}{% include 'common/owner_cell.html' %}{% endwith %}
+                        </div>
+                    </div>
+                    {% else %}
+                        <div class="text">_</div>
+                    {% endif %}
+                </li>
+
+            </ul>
+        </div>
+        <div class="col-5">
+            <ul class="list-group list-group-flush">
+
+                {% if activity.lead %}
+                <li class="list-group-item g_field">
+                  <div class="label">Related Lead</div>
+                    <div class="text">
+                        <span data-feather="file" class="mr-1"></span>
+                        <a href="{{ url_for('leads.get_lead_view', lead_id=activity.lead.id) }}">
+                            {{ activity.lead.first_name }} {{ activity.lead.last_name }}
+                        </a>
+                    </div>
+                </li>
+                {% endif %}
+
+                {% if activity.account %}
+                <li class="list-group-item g_field">
+                  <div class="label">Related Account</div>
+                    <div class="text">
+                        <span data-feather="map-pin" class="mr-1"></span>
+                        <a href="{{ url_for('accounts.get_account_view', account_id=activity.account.id) }}">
+                            {{ activity.account.name }}
+                        </a>
+                    </div>
+                </li>
+                {% endif %}
+
+                {% if activity.contact %}
+                <li class="list-group-item g_field">
+                  <div class="label">Related Contact</div>
+                    <div class="text">
+                        <span data-feather="users" class="mr-1"></span>
+                        <a href="{{ url_for('contacts.get_contact_view', contact_id=activity.contact.id) }}">
+                            {{ activity.contact.first_name }} {{ activity.contact.last_name }}
+                        </a>
+                    </div>
+                </li>
+                {% endif %}
+
+                {% if activity.deal %}
+                <li class="list-group-item g_field">
+                  <div class="label">Related Deal</div>
+                    <div class="text">
+                        <span data-feather="dollar-sign" class="mr-1"></span>
+                        <a href="{{ url_for('deals.get_deal_view', deal_id=activity.deal.id) }}">
+                            {{ activity.deal.title }}
+                        </a>
+                    </div>
+                </li>
+                {% endif %}
+
+                {% if not (activity.lead or activity.account or activity.contact or activity.deal) %}
+                <li class="list-group-item g_field">
+                  <div class="label">Related Entities</div>
+                    <div class="text text-muted">No related entities</div>
+                </li>
+                {% endif %}
+
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-10">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item g_field col-12">
+                    <div class="label">Description / Notes</div>
+                    <div class="text">{{ activity.description if activity.description else '_' }}</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% endblock %}

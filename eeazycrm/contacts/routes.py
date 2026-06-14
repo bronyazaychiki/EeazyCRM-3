@@ -197,7 +197,12 @@ def update_contact(contact_id):
 @check_access('contacts', 'view')
 def get_contact_view(contact_id):
     contact = Contact.query.filter_by(id=contact_id).first()
-    return render_template("contacts/contact_view.html", title="View Contact", contact=contact)
+    from eeazycrm.activities.models import Activity
+    recent_activities = Activity.query.filter_by(contact_id=contact_id) \
+        .order_by(Activity.scheduled_date.desc()).limit(5).all()
+    return render_template("contacts/contact_view.html", title="View Contact", contact=contact,
+                           recent_activities=recent_activities,
+                           context_params={'contact_id': contact_id})
 
 
 @contacts.route("/contacts/del/<int:contact_id>")

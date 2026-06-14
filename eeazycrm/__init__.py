@@ -73,6 +73,7 @@ def create_app(config_class=ProductionConfig):
         from eeazycrm.settings.routes import settings
         from eeazycrm.settings.app_routes import app_config
         from eeazycrm.reports.routes import reports
+        from eeazycrm.activities.routes import activities
 
         # register routes with blueprint
         app.register_blueprint(main)
@@ -84,6 +85,26 @@ def create_app(config_class=ProductionConfig):
         app.register_blueprint(contacts)
         app.register_blueprint(deals)
         app.register_blueprint(reports)
+        app.register_blueprint(activities)
+
+        # Ensure activities RBAC resource exists for existing installations
+        from eeazycrm.users.models import Resource, Role
+        activities_resource = Resource.query.filter_by(name='activities').first()
+        if not activities_resource:
+            activities_resource = Resource(
+                name='activities',
+                can_view=True,
+                can_edit=True,
+                can_create=True,
+                can_delete=False
+            )
+            db.session.add(activities_resource)
+            db.session.flush()
+            # Add to all existing roles
+            for role in Role.query.all():
+                role.resources.append(activities_resource)
+            db.session.commit()
+
         return app
 
 

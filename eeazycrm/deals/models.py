@@ -54,5 +54,17 @@ class Deal(db.Model):
     def get_deal(deal_id):
         return Deal.query.filter_by(id=deal_id).first()
 
+    @staticmethod
+    def deal_list_query():
+        from flask_login import current_user
+        if current_user.is_admin:
+            return Deal.query
+        else:
+            return Deal.query.filter_by(owner_id=current_user.id)
+
+    @staticmethod
+    def get_label(deal):
+        return deal.title or f'Deal #{deal.id}'
+
     def __repr__(self):
         return f"Deal('{self.title}', '{self.deal_stage_id}', '{self.account_id}', '{self.contact_id}', '{self.owner_id}')"

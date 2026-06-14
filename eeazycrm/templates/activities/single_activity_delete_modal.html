@@ -1,0 +1,26 @@
+<div class="modal fade ba_modal" id="singleActivityDeleteModal_{{ act.id }}" tabindex="-1" role="dialog"
+     aria-labelledby="activityDeleteModalLabel_{{ act.id }}"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="activityDeleteModalLabel_{{ act.id }}">Delete Activity</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning" role="alert">
+                  <h5 class="alert-heading">Are you sure?</h5>
+                    <p>Please note that once deleted this activity cannot be recovered.</p>
+                    <p><strong>{{ act.subject }}</strong></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Close</button>
+                <a class="btn btn-primary"
+                   href="{{ url_for('activities.delete_activity', activity_id=act.id) }}">Delete Activity</a>
+            </div>
+        </div>
+    </div>
+</div>
