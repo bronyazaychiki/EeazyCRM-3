@@ -90,7 +90,7 @@ class ImportLeads(FlaskForm):
 
 
 class ConvertLead(FlaskForm):
-    title = StringField('Deal Title', validators=[DataRequired('Deal title is mandatory')])
+    title = StringField('Deal Title')
     use_account_information = BooleanField('Use Account Information', default=True)
     account_name = StringField('Account Name')
     account_email = StringField('Account Email')
@@ -108,17 +108,58 @@ class ConvertLead(FlaskForm):
 
     create_deal = BooleanField('Create Deal', default=True)
 
-    expected_close_price = FloatField('Expected Close Price',
-                                      validators=[DataRequired('Expected Close Price is mandatory')])
+    expected_close_price = FloatField('Expected Close Price')
     expected_close_date = DateField('Expected Close Date', format='%Y-%m-%d',
                                     validators=[Optional()])
     deal_stages = QuerySelectField('Deal Stage', query_factory=DealStage.deal_stage_list_query, get_pk=lambda a: a.id,
-                                   get_label=DealStage.get_label, allow_blank=False,
-                                   validators=[DataRequired(message='Please select deal stage')])
+                                   get_label=DealStage.get_label, allow_blank=True)
 
     assignees = QuerySelectField('Assign To', query_factory=User.user_list_query, get_pk=lambda a: a.id,
                                  get_label=User.get_label, default=User.get_current_user)
-    submit = SubmitField('Covert Lead')
+    submit = SubmitField('Convert Lead')
+
+    def validate(self, extra_validators=None):
+        # Skip custom validation if base validators fail
+        if not super().validate(extra_validators):
+            return False
+
+        is_valid = True
+
+        if self.use_account_information.data:
+            if not self.account_name.data or not self.account_name.data.strip():
+                self.account_name.errors.append('Account name is required when creating a new account')
+                is_valid = False
+            if not self.account_email.data or not self.account_email.data.strip():
+                self.account_email.errors.append('Account email is required when creating a new account')
+                is_valid = False
+        else:
+            if not self.accounts.data:
+                self.accounts.errors.append('Please select an existing account')
+                is_valid = False
+
+        if self.use_contact_information.data:
+            if not self.contact_last_name.data or not self.contact_last_name.data.strip():
+                self.contact_last_name.errors.append('Contact last name is required when creating a new contact')
+                is_valid = False
+            if not self.contact_email.data or not self.contact_email.data.strip():
+                self.contact_email.errors.append('Contact email is required when creating a new contact')
+                is_valid = False
+            if not self.contact_phone.data or not self.contact_phone.data.strip():
+                self.contact_phone.errors.append('Contact phone is required when creating a new contact')
+                is_valid = False
+
+        if self.create_deal.data:
+            if not self.title.data or not self.title.data.strip():
+                self.title.errors.append('Deal title is required when creating a deal')
+                is_valid = False
+            if not self.expected_close_price.data:
+                self.expected_close_price.errors.append('Expected close price is required when creating a deal')
+                is_valid = False
+            if not self.deal_stages.data:
+                self.deal_stages.errors.append('Deal stage is required when creating a deal')
+                is_valid = False
+
+        return is_valid
 
 
 class BulkOwnerAssign(FlaskForm):

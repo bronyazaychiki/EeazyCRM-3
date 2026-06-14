@@ -55,6 +55,7 @@
                     <th width="250" scope="col">Owner</th>
                     <th width="200" scope="col">Lead Source</th>
                      <th width="200" scope="col">Lead Status</th>
+                    <th width="120" scope="col">Converted</th>
                     <th width="200" scope="col">Date Created</th>
                 </tr>
               </thead>
@@ -91,6 +92,13 @@
                     <td>{% with owner=lead.owner %}{% include 'common/owner_cell.html' %}{% endwith %}</td>
                     <td>{{ lead.source.source_name }}</td>
                     <td>{{ lead.status.status_name }}</td>
+                    <td>
+                        {% if lead.is_converted %}
+                            <span class="badge badge-success">Converted</span>
+                        {% else %}
+                            <span class="badge badge-secondary">Pending</span>
+                        {% endif %}
+                    </td>
                     <td>{{ lead.date_created.strftime('%Y-%m-%d') if lead.date_created }}</td>
                 </tr>
                 {% endfor %}

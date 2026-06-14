@@ -1,8 +1,14 @@
 {% extends "layout.html" %}
     {% block content %}
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h2 class="h4">{% if title %}{{title}}{% else %}No Title{% endif %}</h2>
+        <h2 class="h4">
+            {% if title %}{{title}}{% else %}No Title{% endif %}
+            {% if lead.is_converted %}
+                <span class="badge badge-success ml-2" style="font-size: 0.6em; vertical-align: middle;">Converted</span>
+            {% endif %}
+        </h2>
         <div class="btn-toolbar mb-2 mb-md-0">
+            {% if not lead.is_converted %}
             <a href="{{ url_for('leads.update_lead', lead_id=lead.id) }}"
                class="btn btn-md btn-outline-primary mr-2" role="button">
                 <span data-feather="edit-2"></span>
@@ -12,6 +18,7 @@
                 <span data-feather="arrow-left"></span>
                   Convert
             </a>
+            {% endif %}
             <a href="{{ url_for('leads.get_leads_view') }}" class="btn btn-md btn-outline-secondary" role="button">
                 <span data-feather="arrow-left"></span>
                   Back to View
@@ -52,6 +59,15 @@
                   <div class="label">Lead Status</div>
                   <div class="text">{{ lead.status.status_name if lead.status else '_' }}</div>
               </li>
+              {% if lead.is_converted %}
+                <li class="list-group-item g_field">
+                  <div class="label">Converted On</div>
+                  <div class="text">
+                      <span class="badge badge-success mr-1">Converted</span>
+                      {{ lead.converted_date.strftime('%Y-%m-%d %H:%M') if lead.converted_date else '_' }}
+                  </div>
+              </li>
+              {% endif %}
                 <li class="list-group-item g_field">
                   <div class="label">Owner</div>
                     {% if lead.owner %}

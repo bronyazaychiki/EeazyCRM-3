@@ -54,6 +54,8 @@ class Lead(db.Model):
     lead_source_id = db.Column(db.Integer, db.ForeignKey('lead_source.id', ondelete='SET NULL'), nullable=True)
     lead_status_id = db.Column(db.Integer, db.ForeignKey('lead_status.id', ondelete='SET NULL'), nullable=True)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
+    is_converted = db.Column(db.Boolean, default=False, nullable=False)
+    converted_date = db.Column(db.DateTime, nullable=True)
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     @staticmethod

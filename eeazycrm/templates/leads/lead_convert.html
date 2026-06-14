@@ -109,7 +109,7 @@
                     {% if form.contact_last_name.errors %}
                         {{ form.contact_last_name(id="contact_last_name", class="form-control form-control-lg required is-invalid") }}
                         <div class="invalid-feedback">
-                            {% for error in form.contact_first_name.errors %}
+                            {% for error in form.contact_last_name.errors %}
                                 <span>{{ error }}</span>
                             {% endfor %}
                         </div>
@@ -169,26 +169,35 @@
             <div class="form-row mb-3">
                 <div class="col">
                     {{ form.title.label(class="form-control-label") }}
-                    {{ form.title(class="form-control from-control-lg required", placeholder="enter deal title ...") }}
+                    {% if form.title.errors %}
+                        {{ form.title(id="deal_title", class="form-control from-control-lg required is-invalid", placeholder="enter deal title ...") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.title.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.title(id="deal_title", class="form-control from-control-lg required", placeholder="enter deal title ...") }}
+                    {% endif %}
                 </div>
             </div>
             <div class="form-row mb-3">
                 <div class="col">
                     {{ form.expected_close_price.label(class="form-control-label") }}
                       {% if form.expected_close_price.errors %}
-                        {{ form.expected_close_price(class="form-control form-control-lg required is-invalid") }}
+                        {{ form.expected_close_price(id="expected_close_price", class="form-control form-control-lg required is-invalid") }}
                         <div class="invalid-feedback">
                             {% for error in form.expected_close_price.errors %}
                                 <span>{{ error }}</span>
                             {% endfor %}
                         </div>
                       {% else %}
-                        {{ form.expected_close_price(class="form-control required from-control-lg", placeholder="expected close price ...") }}
+                        {{ form.expected_close_price(id="expected_close_price", class="form-control required from-control-lg", placeholder="expected close price ...") }}
                       {% endif %}
                 </div>
                 <div class="col">
                     {{ form.expected_close_date.label(class="form-control-label datepicker") }}
-                    {{ form.expected_close_date(class="form-control from-control-lg", placeholder="select date ...") }}
+                    {{ form.expected_close_date(id="expected_close_date", class="form-control from-control-lg", placeholder="select date ...") }}
                 </div>
             </div>
 
@@ -196,14 +205,14 @@
                 <div class="col">
                     {{ form.deal_stages.label(class="form-control-label") }}
                     {% if form.deal_stages.errors %}
-                        {{ form.deal_stages(class="form-control form-control-lg required is-invalid") }}
+                        {{ form.deal_stages(id="deal_stages", class="form-control form-control-lg required is-invalid") }}
                             <div class="invalid-feedback">
                                 {% for error in form.deal_stages.errors %}
                                     <span>{{ error }}</span>
                                 {% endfor %}
                             </div>
                     {% else %}
-                    {{ form.deal_stages(class="form-control from-control-lg required") }}
+                    {{ form.deal_stages(id="deal_stages", class="form-control from-control-lg required") }}
                     {% endif %}
                 </div>
             </div>
@@ -240,6 +249,13 @@
         $('#contact_email').attr('readonly', true);
         $('#contact_phone').attr('readonly', true);
 
+        // Initialize deal fields based on create_deal checkbox
+        var dealChecked = $('#create_deal').is(':checked');
+        $('#deal_title').attr('readonly', !dealChecked);
+        $('#expected_close_price').attr('readonly', !dealChecked);
+        $('#expected_close_date').attr('readonly', !dealChecked);
+        $('#deal_stages').attr('readonly', !dealChecked);
+
         $('#use_account').on('click', function() {
             var checked = $(this).is(':checked');
             $('#account_name').attr('readonly', !checked);
@@ -254,6 +270,14 @@
             $('#contact_email').attr('readonly', !checked);
             $('#contact_phone').attr('readonly', !checked);
             $('#deal_contacts').attr('readonly', checked);
+        });
+
+        $('#create_deal').on('click', function() {
+            var checked = $(this).is(':checked');
+            $('#deal_title').attr('readonly', !checked);
+            $('#expected_close_price').attr('readonly', !checked);
+            $('#expected_close_date').attr('readonly', !checked);
+            $('#deal_stages').attr('readonly', !checked);
         });
     });
 </script>
