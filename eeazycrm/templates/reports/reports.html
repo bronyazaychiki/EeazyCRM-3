@@ -26,10 +26,10 @@
                     </li>
                 {% endif %}
                 <li class="list-group-item">
-                    <a href="#">Deals closed (sales) by Time</a>
+                    <a href="{{ url_for('reports.deal_closed_by_date') }}">Deals closed (sales) by Time</a>
                 </li>
                 <li class="list-group-item">
-                    <a href="#">Sales forecast</a>
+                    <a href="{{ url_for('reports.sales_forecast') }}">Sales forecast</a>
                 </li>
             </ul>
         </div>

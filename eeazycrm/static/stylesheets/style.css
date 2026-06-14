@@ -280,4 +280,14 @@ body {
     font-size: 14px;
 }
 
+/* Dashboard / report KPI card accents */
+.border-left-primary { border-left: .25rem solid #4e73df !important; }
+.border-left-success { border-left: .25rem solid #1cc88a !important; }
+.border-left-info    { border-left: .25rem solid #36b9cc !important; }
+.border-left-warning { border-left: .25rem solid #f6c23e !important; }
+.border-left-danger  { border-left: .25rem solid #e74a3b !important; }
+
+.text-xs { font-size: .7rem; }
+.text-gray-800 { color: #5a5c69 !important; }
+.text-gray-300 { color: #dddfeb !important; }
 

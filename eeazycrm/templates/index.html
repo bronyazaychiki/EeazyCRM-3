@@ -1,6 +1,232 @@
 {% extends "layout.html" %}
-    {% block content %}
+{% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h2 class="h4">{% if title %}{{title}}{% else %}No Title{% endif %}</h2>
+    <h2 class="h4">{{ title }}</h2>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a class="btn btn-sm btn-outline-primary" role="button" href="{{ url_for('reports.deal_reports') }}">
+            <span data-feather="bar-chart-2"></span> View Reports
+        </a>
+    </div>
 </div>
-    {% endblock %}
+
+<!-- KPI Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-primary shadow-sm h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Open Pipeline</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ config.def_currency.symbol }} {{ "{:,.0f}".format(total_pipeline) }}</div>
+                        <div class="text-muted small">{{ open_deal_count }} active deals</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-success shadow-sm h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Won This Month</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ config.def_currency.symbol }} {{ "{:,.0f}".format(won_this_month_total) }}</div>
+                        <div class="text-muted small">{{ won_this_month_count }} deals closed</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-info shadow-sm h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Win Rate</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ "{:.1f}".format(win_rate) }}%</div>
+                        <div class="text-muted small">{{ won_this_month_count }}W / {{ lost_this_month_count }}L this month</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-trophy fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-warning shadow-sm h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Weighted Forecast</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ config.def_currency.symbol }} {{ "{:,.0f}".format(weighted_total) }}</div>
+                        <div class="text-muted small">Stage-adjusted</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stage distribution chart + upcoming deals -->
+<div class="row mb-4">
+    <div class="col-md-5 mb-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white font-weight-bold">Pipeline by Stage</div>
+            <div class="card-body">
+                {% if stage_distribution|length > 0 %}
+                    <canvas id="dashStageChart" width="400" height="300"></canvas>
+                {% else %}
+                    <div class="text-center text-muted py-5">No active deals yet.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7 mb-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="font-weight-bold">Deals Closing in Next 30 Days</span>
+                <a href="{{ url_for('reports.sales_forecast') }}" class="btn btn-sm btn-outline-secondary">View Forecast</a>
+            </div>
+            <div class="card-body p-0">
+                {% if upcoming_deals|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Close Date</th>
+                                <th>Deal</th>
+                                <th>Owner</th>
+                                <th class="text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in upcoming_deals %}
+                            <tr>
+                                <td>{{ d.expected_close_date.strftime('%b %d') if d.expected_close_date else '—' }}</td>
+                                <td>{{ d.title or '—' }}</td>
+                                <td>{{ d.owner.first_name or '' }} {{ d.owner.last_name or '' }}</td>
+                                <td class="text-right">{{ config.def_currency.symbol }} {{ "{:,.2f}".format(d.expected_close_price) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">No deals closing in the next 30 days.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick links to reports -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white font-weight-bold">Reports</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <a href="{{ url_for('reports.deal_stages') }}" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100">
+                                <span data-feather="bar-chart-2" class="text-primary"></span>
+                                <strong class="ml-2">Revenue by Stage</strong>
+                                <div class="text-muted small mt-1">Deal breakdown across pipeline stages</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <a href="{{ url_for('reports.deal_closed_by_date') }}" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100">
+                                <span data-feather="calendar" class="text-success"></span>
+                                <strong class="ml-2">Deals Closed by Time</strong>
+                                <div class="text-muted small mt-1">Won / lost trends over time</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <a href="{{ url_for('reports.sales_forecast') }}" class="text-decoration-none">
+                            <div class="border rounded p-3 h-100">
+                                <span data-feather="trending-up" class="text-warning"></span>
+                                <strong class="ml-2">Sales Forecast</strong>
+                                <div class="text-muted small mt-1">Weighted pipeline projections</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if stage_distribution|length > 0 %}
+<script>
+$(document).ready(function() {
+    var labels = [];
+    var data = [];
+    {% for s in stage_distribution %}
+        labels.push('{{ s.stage_name }}');
+        data.push({{ s.total }});
+    {% endfor %}
+
+    var ctx = document.getElementById('dashStageChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)',
+                    'rgba(40, 167, 69, 0.7)',
+                    'rgba(220, 53, 69, 0.7)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            legend: { position: 'bottom' },
+            tooltips: {
+                callbacks: {
+                    label: function(item, data) {
+                        var val = data.datasets[0].data[item.index];
+                        var ranges = [
+                            { divider: 1e6, suffix: 'M' },
+                            { divider: 1e3, suffix: 'k' }
+                        ];
+                        function fmt(n) {
+                            for (var i = 0; i < ranges.length; i++) {
+                                if (n >= ranges[i].divider) {
+                                    return (n / ranges[i].divider).toFixed(1) + ranges[i].suffix;
+                                }
+                            }
+                            return n.toFixed(2);
+                        }
+                        return data.labels[item.index] + ': $ ' + fmt(val);
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
