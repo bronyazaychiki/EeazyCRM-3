@@ -6,6 +6,7 @@ from eeazycrm.deals.models import Deal, DealStage
 from eeazycrm.accounts.models import Account
 from eeazycrm.users.models import User
 from eeazycrm.rbac import is_admin
+from eeazycrm.main.routes import build_deal_stage_query
 
 from functools import reduce
 
@@ -21,30 +22,9 @@ def deal_reports():
 @reports.route("/reports/deal_stages")
 @login_required
 def deal_stages():
-    if current_user.is_admin:
-        query = Deal.query \
-            .with_entities(
-                DealStage.stage_name.label('stage_name'),
-                func.sum(Deal.expected_close_price).label('total_price'),
-                func.count(Deal.id).label('total_count')
-            ) \
-            .join(Deal.deal_stage) \
-            .group_by(DealStage.stage_name) \
-            .order_by(text('total_price DESC'))
-    else:
-        query = Deal.query \
-            .with_entities(
-                DealStage.stage_name.label('stage_name'),
-                func.sum(Deal.expected_close_price).label('total_price'),
-                func.count(Deal.id).label('total_count')
-            ) \
-            .join(Deal.deal_stage) \
-            .group_by(DealStage.stage_name, Deal.owner_id) \
-            .having(Deal.owner_id == current_user.id) \
-            .order_by(text('total_price DESC'))
-
+    deals = build_deal_stage_query(scope_to_user=True).all()
     return render_template("reports/deals_stages.html",
-                           title="Reports: Deal Stages", deals=query.all())
+                           title="Reports: Deal Stages", deals=deals)
 
 
 @reports.route("/reports/deals_closed")

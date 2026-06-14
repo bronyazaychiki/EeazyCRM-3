@@ -1,6 +1,376 @@
 {% extends "layout.html" %}
-    {% block content %}
+{% block content %}
+
+{# ── Page Header ─────────────────────────────────────────────── #}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h2 class="h4">{% if title %}{{title}}{% else %}No Title{% endif %}</h2>
+    <h2 class="h4">{{ title }}</h2>
+    <div class="text-muted small">
+        {{ today_date.strftime('%A, %B %d, %Y') }}
+    </div>
 </div>
-    {% endblock %}
+
+{# ── KPI Cards Row ───────────────────────────────────────────── #}
+<div class="row mb-4">
+    {# Total Leads #}
+    <div class="col-xl-3 col-md-6 mb-3">
+        <a href="{{ url_for('leads.get_leads_view') }}" class="text-decoration-none">
+            <div class="card dashboard-kpi-card border-left-primary h-100">
+                <div class="card-body py-3">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Leads</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_leads }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i data-feather="file" class="dashboard-kpi-icon text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    {# Total Accounts #}
+    <div class="col-xl-3 col-md-6 mb-3">
+        <a href="{{ url_for('accounts.get_accounts_view') }}" class="text-decoration-none">
+            <div class="card dashboard-kpi-card border-left-success h-100">
+                <div class="card-body py-3">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Accounts</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_accounts }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i data-feather="map-pin" class="dashboard-kpi-icon text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    {# Total Contacts #}
+    <div class="col-xl-3 col-md-6 mb-3">
+        <a href="{{ url_for('contacts.get_contacts_view') }}" class="text-decoration-none">
+            <div class="card dashboard-kpi-card border-left-info h-100">
+                <div class="card-body py-3">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Contacts</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_contacts }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i data-feather="users" class="dashboard-kpi-icon text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    {# Open Pipeline Value #}
+    <div class="col-xl-3 col-md-6 mb-3">
+        <a href="{{ url_for('deals.get_deals_view') }}" class="text-decoration-none">
+            <div class="card dashboard-kpi-card border-left-warning h-100">
+                <div class="card-body py-3">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Open Pipeline</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ config.def_currency.symbol }} {{ "{:,.0f}".format(pipeline_value) }}
+                            </div>
+                            <div class="text-xs text-muted mt-1">{{ pipeline_count }} active deal{{ 's' if pipeline_count != 1 else '' }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i data-feather="dollar-sign" class="dashboard-kpi-icon text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+{# ── Deal Pipeline Chart ─────────────────────────────────────── #}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">Deal Pipeline</h6>
+                <a href="{{ url_for('reports.deal_stages') }}" class="btn btn-sm btn-outline-secondary">
+                    <i data-feather="bar-chart-2"></i> Full Report
+                </a>
+            </div>
+            <div class="card-body">
+                {% if deal_stages|length > 0 %}
+                    <canvas id="dashboardPipelineChart" height="80"></canvas>
+                {% else %}
+                    <div class="text-center dashboard-empty-state text-muted">
+                        <div><i data-feather="bar-chart-2"></i></div>
+                        <p class="mt-2 mb-0">No deals to display.
+                            <a href="{{ url_for('deals.new_deal') }}">Create your first deal</a>.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── Leads Row: New Leads + Hot Leads ────────────────────────── #}
+<div class="row">
+    {# New Leads (last 30 days) #}
+    <div class="col-xl-6 col-lg-6 mb-4">
+        <div class="card dashboard-section-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">
+                    <i data-feather="file"></i> New Leads
+                    <span class="badge badge-secondary ml-1">Last 30 days</span>
+                </h6>
+                <a href="{{ url_for('leads.get_leads_view') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if new_leads|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Company</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in new_leads %}
+                            <tr class="dashboard-clickable-row"
+                                data-href="{{ url_for('leads.get_lead_view', lead_id=lead.id) }}">
+                                <td>
+                                    {% if lead.first_name %}{{ lead.first_name }} {% endif %}{{ lead.last_name }}
+                                </td>
+                                <td>{{ lead.company_name }}</td>
+                                <td>
+                                    {% if lead.status %}
+                                        <span class="badge badge-{{
+                                            'danger' if lead.status.status_name == 'Very Hot'
+                                            else 'warning' if lead.status.status_name == 'Hot'
+                                            else 'info' if lead.status.status_name == 'Warm'
+                                            else 'secondary'
+                                        }}">{{ lead.status.status_name }}</span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted small">{{ lead.date_created.strftime('%b %d, %Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center dashboard-empty-state text-muted">
+                    <div><i data-feather="inbox"></i></div>
+                    <p class="mt-2 mb-0">No new leads in the last 30 days.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Hot Leads needing follow-up #}
+    <div class="col-xl-6 col-lg-6 mb-4">
+        <div class="card dashboard-section-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">
+                    <i data-feather="zap"></i> Leads Needing Attention
+                </h6>
+                <a href="{{ url_for('leads.get_leads_view') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if hot_leads|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Company</th>
+                                <th>Status</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in hot_leads %}
+                            <tr class="dashboard-clickable-row"
+                                data-href="{{ url_for('leads.get_lead_view', lead_id=lead.id) }}">
+                                <td>
+                                    {% if lead.first_name %}{{ lead.first_name }} {% endif %}{{ lead.last_name }}
+                                </td>
+                                <td>{{ lead.company_name }}</td>
+                                <td>
+                                    <span class="badge badge-{{
+                                        'danger' if lead.status and lead.status.status_name == 'Very Hot'
+                                        else 'warning'
+                                    }}">{{ lead.status.status_name if lead.status else '—' }}</span>
+                                </td>
+                                <td class="text-muted small">
+                                    {% if lead.email %}
+                                        {{ lead.email }}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center dashboard-empty-state text-muted">
+                    <div><i data-feather="zap"></i></div>
+                    <p class="mt-2 mb-0">No hot leads requiring attention.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── Bottom Row: Closing Deals + Recent Accounts ─────────────── #}
+<div class="row">
+    {# Deals closing in next 7 days #}
+    <div class="col-xl-6 col-lg-6 mb-4">
+        <div class="card dashboard-section-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">
+                    <i data-feather="clock"></i> Closing Soon
+                    <span class="badge badge-secondary ml-1">Next 7 days</span>
+                </h6>
+                <a href="{{ url_for('deals.get_deals_view') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if closing_deals|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Deal</th>
+                                <th>Account</th>
+                                <th>Amount</th>
+                                <th>Close Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for deal in closing_deals %}
+                            <tr class="dashboard-clickable-row"
+                                data-href="{{ url_for('deals.get_deal_view', deal_id=deal.id) }}">
+                                <td>{{ deal.title or 'Untitled Deal' }}</td>
+                                <td>{{ deal.account.name if deal.account else '—' }}</td>
+                                <td>{{ config.def_currency.symbol }} {{ "{:,.2f}".format(deal.expected_close_price) }}</td>
+                                <td>
+                                    {% if deal.expected_close_date %}
+                                        <span class="{{ 'text-danger font-weight-bold' if (deal.expected_close_date - today_date).days <= 1 else 'text-warning' if (deal.expected_close_date - today_date).days <= 3 else '' }}">
+                                            {{ deal.expected_close_date.strftime('%b %d') }}
+                                        </span>
+                                        <span class="text-muted small">
+                                            ({{ (deal.expected_close_date - today_date).days }}d)
+                                        </span>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center dashboard-empty-state text-muted">
+                    <div><i data-feather="clock"></i></div>
+                    <p class="mt-2 mb-0">No deals closing in the next 7 days.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Recently Added Accounts #}
+    <div class="col-xl-6 col-lg-6 mb-4">
+        <div class="card dashboard-section-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">
+                    <i data-feather="map-pin"></i> Recent Accounts
+                </h6>
+                <a href="{{ url_for('accounts.get_accounts_view') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_accounts|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in recent_accounts %}
+                            <tr class="dashboard-clickable-row"
+                                data-href="{{ url_for('accounts.get_account_view', account_id=account.id) }}">
+                                <td>{{ account.name }}</td>
+                                <td class="text-muted small">{{ account.email }}</td>
+                                <td class="text-muted small">
+                                    {% if account.phone %}
+                                        {{ account.phone }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted small">{{ account.date_created.strftime('%b %d, %Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center dashboard-empty-state text-muted">
+                    <div><i data-feather="map-pin"></i></div>
+                    <p class="mt-2 mb-0">No accounts yet.
+                        <a href="{{ url_for('accounts.new_account') }}">Create your first account</a>.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── Scripts ──────────────────────────────────────────────────── #}
+<script src="{{ url_for('static', filename='scripts/dashboard.js') }}"></script>
+<script>
+    $(document).ready(function() {
+        // Re-render feather icons for dynamically added elements
+        feather.replace();
+
+        // Clickable table rows
+        $('.dashboard-clickable-row').on('click', function() {
+            window.location = $(this).data('href');
+        });
+
+        // Deal Pipeline Chart
+        {% if deal_stages|length > 0 %}
+            var stageLabels = [];
+            var stageValues = [];
+            var stageCounts = [];
+            {% for stage in deal_stages %}
+                stageLabels.push('{{ stage.stage_name }}');
+                stageValues.push({{ stage.total_price or 0 }});
+                stageCounts.push({{ stage.total_count or 0 }});
+            {% endfor %}
+            plotDashboardPipelineChart(stageLabels, stageValues, stageCounts);
+        {% endif %}
+    });
+</script>
+
+{% endblock %}
